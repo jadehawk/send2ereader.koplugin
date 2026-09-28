@@ -22,7 +22,7 @@ The release ZIP contains a root README and the plugin folder. GitHub's automatic
 - Browse the session's books and download them into your selected folder. Grid/list layout controls are available in Settings.
 - Share the session code or QR code with the device you want to transfer books to.
 
-A reachable, compatible Send2Ereader server is required. Allowed file types, size limits, and session lifetime are controlled by that server. This repository contains the KOReader plugin; it does not install the server.
+A reachable, compatible Send2Ereader server is required. Allowed file types, size limits, and session lifetime are controlled by the server administrator; deployments commonly use a session lifetime of 15 minutes or more. The plugin follows the server-provided expiry rather than assuming a fixed duration. This repository contains the KOReader plugin; it does not install the server.
 
 ## Update and troubleshoot
 
