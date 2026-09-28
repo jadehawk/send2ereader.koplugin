@@ -29,3 +29,13 @@ A reachable, compatible Send2Ereader server is required. Allowed file types, siz
 To update, close KOReader, replace the plugin folder with the folder from the new release, and restart. Persistent settings and logs live under KOReader's settings directory, outside the plugin folder.
 
 If a transfer fails, check Wi-Fi, server connection, session validity, and the download folder. Settings provides connection testing, debug logs, and the settings/log paths.
+
+## Support
+
+If you find the plugin useful, you can support development here:
+
+<https://buymeacoffee.com/jadehawk>
+
+Tutorials, demos, and project updates are available on YouTube:
+
+<https://youtube.com/jadehawk>
