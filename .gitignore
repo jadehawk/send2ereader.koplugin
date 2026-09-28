@@ -1,0 +1,16 @@
+# Publish only the plugin, documentation, and release tooling.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/CHANGELOG.md
+!/SOURCE.md
+!/send2ereader.koplugin/
+!/send2ereader.koplugin/**
+!/.github/
+!/.github/workflows/
+!/.github/workflows/*.yml
+!/.github/scripts/
+!/.github/scripts/*.py
+**/__pycache__/
+*.pyc

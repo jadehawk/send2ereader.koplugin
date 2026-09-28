@@ -1,0 +1,74 @@
+name: Verify and Release Send2Ereader KOReader Plugin
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: send2ereader-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1
+      - name: Validate all Lua and run the complete KOReader plugin suite
+        run: python3 .github/scripts/verify.py
+      - name: Build and verify package
+        id: package
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            python3 .github/scripts/release.py --tag "$REF_NAME"
+          else
+            python3 .github/scripts/release.py
+          fi
+      - name: Save verified package
+        uses: actions/upload-artifact@v4
+        with:
+          name: send2ereader-release
+          path: |
+            dist/send2ereader.koplugin.zip
+            dist/release-notes.md
+          if-no-files-found: error
+    outputs:
+      tag: ${{ steps.package.outputs.tag }}
+
+  release:
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: send2ereader-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: send2ereader-release
+          path: dist
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.verify.outputs.tag }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/send2ereader.koplugin.zip \
+            --target "$RELEASE_COMMIT" \
+            --title "$RELEASE_TAG" \
+            --notes-file dist/release-notes.md
