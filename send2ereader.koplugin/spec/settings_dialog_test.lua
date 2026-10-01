@@ -108,7 +108,7 @@ local plugin = {
     browser_list_rows = 7,
     destination = "/books",
     server_url = "https://send.techy-notes.com",
-    PLUGIN_VERSION = "0.1.0",
+    PLUGIN_VERSION = "0.1.1",
     setBrowserLayout = function() end,
 }
 

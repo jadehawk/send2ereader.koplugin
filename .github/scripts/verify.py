@@ -3,9 +3,13 @@
 import argparse
 import os
 from pathlib import Path
+import runpy
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
+plugin_version_from_meta = runpy.run_path(
+    str(Path(__file__).resolve().parent / "release.py")
+)["plugin_version_from_meta"]
 
 
 def main():
@@ -13,6 +17,17 @@ def main():
     parser.add_argument("--plugin", type=Path, default=ROOT / "send2ereader.koplugin")
     args = parser.parse_args()
     plugin = args.plugin.resolve()
+
+    version_samples = {
+        '    version = "0.1.1",': "0.1.1",
+        '    version = "0.1.1.2",': "0.1.1.2",
+    }
+    for sample, expected in version_samples.items():
+        if plugin_version_from_meta(sample) != expected:
+            raise SystemExit(f"Version parser rejected supported version: {expected}")
+    if plugin_version_from_meta('    version = "0.1.1.2.3",') is not None:
+        raise SystemExit("Version parser accepted unsupported five-part version")
+
     files = sorted(plugin.rglob("*.lua"))
     tests = sorted((plugin / "spec").rglob("*_test.lua"))
     if not files or not tests:

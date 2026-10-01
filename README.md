@@ -1,6 +1,6 @@
 # Send2Ereader for KOReader
 
-Current plugin version: **0.1.0**
+Current plugin version: **0.1.1**
 
 Send books from KOReader or receive books through a Send2Ereader server. Create or join a transfer session, share its code or QR code, and browse the session's books in a cover grid or list.
 
@@ -26,7 +26,7 @@ A reachable, compatible Send2Ereader server is required. Allowed file types, siz
 
 ## Update and troubleshoot
 
-To update, close KOReader, replace the plugin folder with the folder from the new release, and restart. Persistent settings and logs live under KOReader's settings directory, outside the plugin folder.
+Send2Ereader checks GitHub for newer releases while KOReader is online and prompts before installing an update. You can also run a manual check from **Settings > About > Check for Updates**. If you prefer to update manually, close KOReader, replace the plugin folder with the folder from the new release, and restart. Persistent settings and logs live under KOReader's settings directory, outside the plugin folder.
 
 If a transfer fails, check Wi-Fi, server connection, session validity, and the download folder. Settings provides connection testing, debug logs, and the settings/log paths.
 

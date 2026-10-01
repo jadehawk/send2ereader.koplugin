@@ -491,15 +491,22 @@ function SettingsWidget:buildPage()
     elseif self.section == "about" then
         return self:simplePage(
             _("About"),
-            _("Send2Ereader") .. " v" .. tostring(self.plugin.PLUGIN_VERSION or "0.1.0"),
-            {}
+            _("Send2Ereader") .. " v" .. tostring(self.plugin.PLUGIN_VERSION or "?"),
+            {
+                {
+                    text = _("Check for Updates"),
+                    callback = function()
+                        require("send2ereader/updater").check(self.plugin)
+                    end,
+                },
+            }
         )
     end
 
     self.section = "general"
     return self:simplePage(
         _("General"),
-        _("Send2Ereader") .. " v" .. tostring(self.plugin.PLUGIN_VERSION or "0.1.0"),
+        _("Send2Ereader") .. " v" .. tostring(self.plugin.PLUGIN_VERSION or "?"),
         {
             {
                 text = _("Downloads"),

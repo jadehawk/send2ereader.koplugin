@@ -7,7 +7,7 @@ local lfs = require("libs/libkoreader-lfs")
 local ltn12 = require("ltn12")
 local rapidjson = require("rapidjson")
 
-local USER_AGENT = "send2ereader.koplugin/0.1.0"
+local USER_AGENT_PREFIX = "send2ereader.koplugin/"
 local CHUNK_SIZE = 64 * 1024
 local MAX_LOG_BODY = 2048
 
@@ -126,7 +126,7 @@ function Client.uniqueDestination(dir, filename)
     return nil, "Unable to choose a unique destination filename"
 end
 
-function Client:new(server_url, logger)
+function Client:new(server_url, logger, plugin_version)
     local normalized, err = self.normalizeBaseUrl(server_url)
     if not normalized then
         return nil, err
@@ -134,6 +134,7 @@ function Client:new(server_url, logger)
     return setmetatable({
         base_url = normalized,
         logger = logger,
+        user_agent = USER_AGENT_PREFIX .. tostring(plugin_version or "unknown"),
         request_sequence = 0,
     }, self)
 end
@@ -177,7 +178,7 @@ function Client:_request(method, path, token, body)
     local url = self:_url(path)
     local chunks = {}
     local headers = {
-        ["User-Agent"] = USER_AGENT,
+        ["User-Agent"] = self.user_agent,
         ["Accept"] = "application/json",
         ["Connection"] = "close",
     }
@@ -368,7 +369,7 @@ function Client:uploadFile(session_id, token, file_path)
         url = url,
         method = "POST",
         headers = {
-            ["User-Agent"] = USER_AGENT,
+            ["User-Agent"] = self.user_agent,
             ["Accept"] = "application/json",
             ["Authorization"] = "Bearer " .. token,
             ["Content-Type"] = "multipart/form-data; boundary=" .. boundary,
@@ -431,7 +432,7 @@ function Client:downloadFile(download_path, token, destination_dir, filename, ex
         url = url,
         method = "GET",
         headers = {
-            ["User-Agent"] = USER_AGENT,
+            ["User-Agent"] = self.user_agent,
             ["Authorization"] = "Bearer " .. token,
             ["Accept"] = "*/*",
             ["Connection"] = "close",
@@ -509,7 +510,7 @@ function Client:downloadAsset(download_path, token, destination)
         url = url,
         method = "GET",
         headers = {
-            ["User-Agent"] = USER_AGENT,
+            ["User-Agent"] = self.user_agent,
             ["Authorization"] = "Bearer " .. token,
             ["Accept"] = "image/*",
             ["Connection"] = "close",

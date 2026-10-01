@@ -153,13 +153,18 @@ local function actionButton(text, width, height, callback, opts)
     return tappableWidget(frame, width, height, callback)
 end
 
-local function placeholderCover(width, height)
+local function coverWidget(item, width, height, path)
     local border = Size.border.thin
     local inner_w = math.max(1, width - 2 * border)
     local inner_h = math.max(1, height - 2 * border)
-    if PLACEHOLDER_COVER_PATH then
+    local image_path = path or PLACEHOLDER_COVER_PATH
+
+    if image_path then
         local ok, scaled = pcall(function()
-            return RenderImage:renderImageFile(PLACEHOLDER_COVER_PATH, false, inner_w, inner_h)
+            if image_path == PLACEHOLDER_COVER_PATH then
+                return RenderImage:renderSVGImageFile(image_path, inner_w, inner_h)
+            end
+            return RenderImage:renderImageFile(image_path, false, inner_w, inner_h)
         end)
         if ok and scaled then
             return FrameContainer:new{
@@ -177,6 +182,7 @@ local function placeholderCover(width, height)
             }
         end
     end
+
     return FrameContainer:new{
         width = width,
         height = height,
@@ -193,33 +199,6 @@ local function placeholderCover(width, height)
             },
         },
     }
-end
-
-local function coverWidget(item, width, height, path)
-    local border = Size.border.thin
-    if path then
-        local inner_w = math.max(1, width - 2 * border)
-        local inner_h = math.max(1, height - 2 * border)
-        local ok, scaled = pcall(function()
-            return RenderImage:renderImageFile(path, false, inner_w, inner_h)
-        end)
-        if ok and scaled then
-            return FrameContainer:new{
-                width = width,
-                height = height,
-                margin = 0,
-                padding = 0,
-                bordersize = border,
-                background = Blitbuffer.COLOR_WHITE,
-                ImageWidget:new{
-                    image = scaled,
-                    image_disposable = true,
-                    scale_factor = 1,
-                },
-            }
-        end
-    end
-    return placeholderCover(width, height)
 end
 
 function SessionBrowser:init()

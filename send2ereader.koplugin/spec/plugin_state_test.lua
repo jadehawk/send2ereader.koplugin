@@ -109,9 +109,10 @@ end
 local fake_client
 package.preload["send2ereader/client"] = function()
     local Client = {}
-    function Client:new(server_url)
+    function Client:new(server_url, logger, plugin_version)
         fake_client = {
             base_url = server_url,
+            plugin_version = plugin_version,
             createSession = function()
                 return {
                     id = "session-1",
@@ -159,6 +160,8 @@ local instance = setmetatable({
 }, { __index = Plugin })
 
 instance:init()
+assert(instance.PLUGIN_VERSION == "0.1.1")
+assert(fake_client.plugin_version == instance.PLUGIN_VERSION)
 assert(registered == instance)
 assert(instance.settings_file == "/tmp/koreader-settings/send2ereader/send2ereader.lua")
 assert(settings.server_url == "https://send.techy-notes.com")

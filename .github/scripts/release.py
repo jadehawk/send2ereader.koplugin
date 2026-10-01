@@ -9,36 +9,48 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 PLUGIN = ROOT / "send2ereader.koplugin"
+VERSION_RE = re.compile(
+    r'^\s*version\s*=\s*"(\d+\.\d+\.\d+(?:\.\d+)?)"\s*,?\s*$',
+    re.MULTILINE,
+)
 REQUIRED = {
     "_meta.lua", "main.lua", "diagnostic_log.lua",
     "send2ereader/client.lua", "send2ereader/session_browser.lua",
-    "send2ereader/settings_dialog.lua",
+    "send2ereader/settings_dialog.lua", "send2ereader/updater.lua",
     "dependencies/icons/close.svg", "dependencies/icons/placeholder-cover.svg",
     "dependencies/icons/refresh.svg", "dependencies/icons/send2ereader-eink.png",
     "dependencies/icons/settings.svg", "dependencies/icons/view-grid.svg",
     "dependencies/icons/view-list.svg",
     "spec/client_test.lua", "spec/diagnostic_log_test.lua",
     "spec/plugin_state_test.lua", "spec/settings_dialog_test.lua",
+    "spec/updater_test.lua",
 }
+
+
+def plugin_version_from_meta(meta: str):
+    match = VERSION_RE.search(meta)
+    return match.group(1) if match else None
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tag", help="Require this tag to match the plugin version")
     args = parser.parse_args()
+
     meta = (PLUGIN / "_meta.lua").read_text(encoding="utf-8")
-    match = re.search(r'^\s*version\s*=\s*"(\d+\.\d+\.\d+(?:\.\d+)?)"\s*,?\s*$',
-                      meta, re.MULTILINE)
+    match = VERSION_RE.search(meta)
     if not match:
-        raise SystemExit("Invalid plugin version in _meta.lua")
+        raise SystemExit("Invalid plugin version in _meta.lua; expected X.Y.Z or X.Y.Z.W")
     version = match.group(1)
     tag = "v" + version
     if args.tag and args.tag != tag:
         raise SystemExit(f"Tag mismatch: {args.tag}; expected {tag}")
+
     main_lua = (PLUGIN / "main.lua").read_text(encoding="utf-8")
-    if not re.search(r'^local VERSION = "' + re.escape(version) + r'"$',
-                     main_lua, re.MULTILINE):
-        raise SystemExit("main.lua version must match _meta.lua")
+    if re.search(r'^local VERSION = "\d+\.\d+\.\d+(?:\.\d+)?"$', main_lua, re.MULTILINE):
+        raise SystemExit("main.lua must not hard-code the plugin version")
+    if not re.search(r'^local VERSION = assert\(PluginMeta\.version,', main_lua, re.MULTILINE):
+        raise SystemExit("main.lua must read the plugin version from _meta.lua")
 
     readme_path = ROOT / "README.md"
     readme = readme_path.read_text(encoding="utf-8")
@@ -78,6 +90,7 @@ def main():
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             z.writestr(info, payload)
+
     with zipfile.ZipFile(archive) as z:
         if len(z.namelist()) != len(expected) or set(z.namelist()) != set(expected):
             raise SystemExit("Archive layout mismatch")
@@ -87,10 +100,14 @@ def main():
             if z.read(name) != payload:
                 raise SystemExit(f"Archive content mismatch: {name}")
 
-    (output / "release-notes.md").write_text(notes.group(1).strip() + "\n", encoding="utf-8")
+    (output / "release-notes.md").write_text(
+        notes.group(1).strip() + "\n",
+        encoding="utf-8",
+    )
     if github_output := os.environ.get("GITHUB_OUTPUT"):
         with open(github_output, "a", encoding="utf-8") as out:
             out.write(f"version={version}\ntag={tag}\n")
+
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     print(f"PASS: {tag}; {len(expected)} verified ZIP entries; sha256={digest}")
 

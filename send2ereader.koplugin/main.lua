@@ -1,3 +1,7 @@
+local source = debug.getinfo(1, "S").source or ""
+local source_path = source:gsub("^@", "")
+local plugin_root = assert(source_path:match("^(.*)[/\\]main%.lua$"), "Unable to determine Send2Ereader plugin root")
+
 local Device = require("device")
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
@@ -17,7 +21,8 @@ local T = require("ffi/util").template
 local util = require("util")
 
 local DEFAULT_SERVER = "https://send.techy-notes.com"
-local VERSION = "0.1.0"
+local PluginMeta = dofile(plugin_root .. "/_meta.lua")
+local VERSION = assert(PluginMeta.version, "Missing plugin version in _meta.lua")
 local CATALOG_POLL_SECONDS = 4
 
 local Send2Ereader = WidgetContainer:extend{
@@ -44,6 +49,7 @@ end
 function Send2Ereader:init()
     DiagnosticLog.init()
     DiagnosticLog.log("[plugin] init:start", "version=" .. VERSION)
+    self.path = self.path or plugin_root
 
     local settings_dir = DataStorage:getSettingsDir() .. "/send2ereader"
     util.makePath(settings_dir)
@@ -97,7 +103,7 @@ function Send2Ereader:init()
 
     self.client = assert(Client:new(self.server_url, function(event, details)
         DiagnosticLog.log(event, details)
-    end))
+    end, VERSION))
     self.session = nil
     self.catalog = { items = {} }
     self.downloaded_ids = {}
@@ -107,6 +113,12 @@ function Send2Ereader:init()
     self.session_poll_callback = nil
 
     self.ui.menu:registerToMainMenu(self)
+    UIManager:scheduleIn(1, function()
+        local ok, updater = pcall(require, "send2ereader/updater")
+        if ok and updater and updater.checkAutomatic then
+            updater.checkAutomatic(self)
+        end
+    end)
     DiagnosticLog.log("[plugin] init:complete",
         "settings=" .. self.settings_file
         .. " logs=" .. tostring(DiagnosticLog.dir() or "")
