@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1.1]
+
+- Simplify the session dashboard so inactive sessions show only **Start Session** and **Join Session**, reflecting that Send2Ereader sessions are bidirectional.
+- Rename active-session actions to **Add Book**, **Download All**, and **End Session**/**Leave Session** based on ownership.
+- Show the full join URL as text beside the QR code and session code for easier manual entry or copying.
+- Increase the active-session hero height only when a session is open so the added URL line and action buttons remain fully inside the card border.
+- Add regression coverage for the new session controls, URL rendering, four-part version, and active-hero sizing.
+
 ## [0.1.1]
 
 - Use `_meta.lua` as the single source of truth for the plugin version across runtime UI, update checks, HTTP user-agent reporting, README synchronization, and release packaging.

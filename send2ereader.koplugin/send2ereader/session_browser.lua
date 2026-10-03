@@ -371,7 +371,7 @@ function SessionBrowser:inactiveHero(width, height)
     local inner_h = math.max(1, height - 2 * pad)
     local button_gap = Screen:scaleBySize(7)
     local button_h = Screen:scaleBySize(32)
-    local button_w = math.max(1, math.floor((inner_w - 2 * button_gap) / 3))
+    local button_w = math.max(1, math.floor((inner_w - button_gap) / 2))
 
     local content = VerticalGroup:new{ align = "center" }
     table.insert(content, TextWidget:new{
@@ -389,12 +389,8 @@ function SessionBrowser:inactiveHero(width, height)
     table.insert(content, VerticalSpan:new{ width = Screen:scaleBySize(7) })
 
     local actions = HorizontalGroup:new{ align = "center" }
-    table.insert(actions, actionButton(_("Send/Upload"), button_w, button_h, function()
-        if self.plugin then self.plugin:showSendOptions() end
-    end))
-    table.insert(actions, HorizontalSpan:new{ width = button_gap })
-    table.insert(actions, actionButton(_("Receive"), button_w, button_h, function()
-        if self.plugin then self.plugin:startReceiveSession() end
+    table.insert(actions, actionButton(_("Start Session"), button_w, button_h, function()
+        if self.plugin then self.plugin:startSession() end
     end))
     table.insert(actions, HorizontalSpan:new{ width = button_gap })
     table.insert(actions, actionButton(_("Join Session"), button_w, button_h, function()
@@ -422,6 +418,8 @@ function SessionBrowser:activeHero(width, height)
     local inner_h = math.max(1, height - 2 * pad)
     local session = self.session or {}
     local has_share_code = session.joinCode and session.joinCode ~= ""
+    local join_url = has_share_code and self.plugin and self.plugin.client
+        and self.plugin.client:joinUrl(session.joinCode) or nil
     local qr_size = has_share_code and math.min(inner_h, Screen:scaleBySize(105)) or 0
     local gap = has_share_code and Screen:scaleBySize(7) or 0
     local text_w = math.max(1, inner_w - qr_size - gap)
@@ -431,7 +429,7 @@ function SessionBrowser:activeHero(width, height)
         table.insert(row, CenterContainer:new{
             dimen = Geom:new{ w = qr_size, h = inner_h },
             QRWidget:new{
-                text = self.plugin.client:joinUrl(session.joinCode),
+                text = join_url,
                 width = qr_size,
                 height = qr_size,
             },
@@ -453,6 +451,13 @@ function SessionBrowser:activeHero(width, height)
             bold = true,
             max_width = text_w,
         })
+        if join_url then
+            table.insert(details, TextWidget:new{
+                text = join_url,
+                face = Font:getFace("smallinfofont", 10),
+                max_width = text_w,
+            })
+        end
     else
         table.insert(details, TextWidget:new{
             text = _("Connected"),
@@ -476,15 +481,15 @@ function SessionBrowser:activeHero(width, height)
     local button_h = Screen:scaleBySize(30)
     local button_w = math.max(1, math.floor((text_w - 2 * button_gap) / 3))
     local actions = HorizontalGroup:new{ align = "center" }
-    table.insert(actions, actionButton(_("Send/Upload"), button_w, button_h, function()
+    table.insert(actions, actionButton(_("Add Book"), button_w, button_h, function()
         if self.plugin then self.plugin:showSendOptions() end
     end, { font_size = 11 }))
     table.insert(actions, HorizontalSpan:new{ width = button_gap })
-    table.insert(actions, actionButton(_("Download all"), button_w, button_h, function()
+    table.insert(actions, actionButton(_("Download All"), button_w, button_h, function()
         if self.plugin then self.plugin:downloadReceived() end
     end, { font_size = 11 }))
     table.insert(actions, HorizontalSpan:new{ width = button_gap })
-    local close_text = session.owner and _("Close session") or _("Leave session")
+    local close_text = session.owner and _("End Session") or _("Leave Session")
     table.insert(actions, actionButton(close_text, button_w, button_h, function()
         if self.plugin then self.plugin:closeSession() end
     end, { font_size = 11, secondary = true }))
@@ -793,6 +798,9 @@ function SessionBrowser:updateItems()
 
     local header_h = Screen:scaleBySize(50)
     local hero_h = math.max(Screen:scaleBySize(98), math.min(Screen:scaleBySize(135), math.floor(self.height * 0.17)))
+    if self.session and self.session.sessionId then
+        hero_h = math.max(hero_h, math.min(Screen:scaleBySize(150), math.floor(self.height * 0.20)))
+    end
     local section_h = Screen:scaleBySize(30)
     local footer_h = Screen:scaleBySize(46)
     local content_h = math.max(Screen:scaleBySize(120), self.height - header_h - hero_h - section_h - footer_h)

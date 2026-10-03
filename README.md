@@ -1,6 +1,6 @@
 # Send2Ereader for KOReader
 
-Current plugin version: **0.1.1**
+Current plugin version: **0.1.1.1**
 
 Send books from KOReader or receive books through a Send2Ereader server. Create or join a transfer session, share its code or QR code, and browse the session's books in a cover grid or list.
 

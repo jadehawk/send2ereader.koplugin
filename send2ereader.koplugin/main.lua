@@ -382,7 +382,7 @@ function Send2Ereader:openSessionBrowser()
     self:openDashboard()
 end
 
-function Send2Ereader:startReceiveSession()
+function Send2Ereader:startSession()
     local session = self.session
     if not session then
         session = self:createOwnerSession(true)
@@ -392,7 +392,7 @@ function Send2Ereader:startReceiveSession()
         self:startCatalogPolling()
     end
 
-    DiagnosticLog.log("[receive] session:ready", "id=" .. tostring(session.sessionId))
+    DiagnosticLog.log("[session] start:ready", "id=" .. tostring(session.sessionId))
     self:openDashboard()
 end
 
@@ -496,7 +496,7 @@ function Send2Ereader:showSendOptions()
         },
     })
     dialog = ButtonDialog:new{
-        title = _("Send / Upload"),
+        title = _("Add Book"),
         title_align = "center",
         buttons = buttons,
     }
@@ -603,7 +603,7 @@ function Send2Ereader:pollSessionCatalog(show_errors)
         self.session_browser:update(self.session, catalog)
     elseif new_count > 0 and not show_errors then
         self:showMessage(T(
-            _("Detected %1 new file(s). Open Send2Ereader → Receive books to view them."),
+            _("Detected %1 new file(s). Open Send2Ereader to view them."),
             new_count
         ), 4)
     end

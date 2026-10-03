@@ -160,7 +160,9 @@ local instance = setmetatable({
 }, { __index = Plugin })
 
 instance:init()
-assert(instance.PLUGIN_VERSION == "0.1.1")
+assert(instance.PLUGIN_VERSION == "0.1.1.1")
+assert(type(instance.startSession) == "function")
+assert(instance.startReceiveSession == nil)
 assert(fake_client.plugin_version == instance.PLUGIN_VERSION)
 assert(registered == instance)
 assert(instance.settings_file == "/tmp/koreader-settings/send2ereader/send2ereader.lua")
